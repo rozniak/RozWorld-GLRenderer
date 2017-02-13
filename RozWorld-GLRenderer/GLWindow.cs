@@ -30,7 +30,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
             Size resolution = RwCore.Client.DisplayResolutions[windowId];
 
             GlfwPointer = Glfw.CreateWindow(resolution.Width, resolution.Height,
-                "RozWorld", GlfwMonitorPtr.Null, sharedContext);
+                RwCore.Client.ClientWindowTitle, GlfwMonitorPtr.Null, sharedContext);
 
             Parent = parent;
             Id = windowId;

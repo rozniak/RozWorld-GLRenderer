@@ -71,7 +71,19 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
             ParentGlfwPointer = firstWindow.GlfwPointer;
             Windows.Add(firstWindow);
 
-            // TODO: Is this all for now?
+            while (!Glfw.WindowShouldClose(ParentGlfwPointer)) // TODO: In future - wait for termination signal from engine
+            {
+                foreach (GLWindow window in Windows)
+                {
+                    Glfw.MakeContextCurrent(window.GlfwPointer);
+
+                    // Do drawing here
+
+                    Glfw.SwapBuffers(window.GlfwPointer);
+                }
+
+                Glfw.PollEvents();
+            }
         }
 
         public override void Stop()
