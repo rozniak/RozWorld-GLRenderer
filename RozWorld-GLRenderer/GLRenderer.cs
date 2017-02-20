@@ -11,8 +11,10 @@
 
 using Oddmatics.RozWorld.API.Client;
 using Pencil.Gaming;
+using Pencil.Gaming.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Oddmatics.RozWorld.FrontEnd.OpenGL
 {
@@ -71,19 +73,48 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
             ParentGlfwPointer = firstWindow.GlfwPointer;
             Windows.Add(firstWindow);
 
+            Glfw.MakeContextCurrent(ParentGlfwPointer);
+
+            // Create VAO initially
+            int vao = GL.GenVertexArray();
+            GL.BindVertexArray(vao);
+
+            // Create test triangle
+            float[] vertexBufferData = new float[] {
+                -1.0f, -1.0f, 0.0f,
+                1.0f, -1.0f, 0.0f,
+                0.0f, 1.0f, 0.0f
+            };
+
+            int size = 36;
+
+            int vertexBuffer = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(36), vertexBufferData, BufferUsageHint.StaticDraw);
+            GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+            
             while (!Glfw.WindowShouldClose(ParentGlfwPointer)) // TODO: In future - wait for termination signal from engine
             {
                 foreach (GLWindow window in Windows)
                 {
                     Glfw.MakeContextCurrent(window.GlfwPointer);
 
+                    GL.Clear(ClearBufferMask.ColorBufferBit);
+
                     // Do drawing here
+                    GL.EnableVertexAttribArray(0);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
+                    GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 0, 0);
+                    GL.DrawArrays(BeginMode.Triangles, 0, 3);
+                    GL.DisableVertexAttribArray(0);
 
                     Glfw.SwapBuffers(window.GlfwPointer);
                 }
 
                 Glfw.PollEvents();
             }
+
+            Stop();
         }
 
         public override void Stop()
