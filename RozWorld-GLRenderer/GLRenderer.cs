@@ -14,7 +14,7 @@ using Pencil.Gaming;
 using Pencil.Gaming.Graphics;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using System.IO;
 
 namespace Oddmatics.RozWorld.FrontEnd.OpenGL
 {
@@ -86,12 +86,14 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
                 0.0f, 1.0f, 0.0f
             };
 
-            int size = 36;
 
             int vertexBuffer = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
-            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(36), vertexBufferData, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * 9), vertexBufferData, BufferUsageHint.StaticDraw);
             GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+            uint programId = GLMethods.LoadShaders(File.ReadAllText(@"C:\shds\vertex.glsl"),
+                File.ReadAllText(@"C:\shds\fragment.glsl"));
             
             while (!Glfw.WindowShouldClose(ParentGlfwPointer)) // TODO: In future - wait for termination signal from engine
             {
@@ -100,6 +102,8 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
                     Glfw.MakeContextCurrent(window.GlfwPointer);
 
                     GL.Clear(ClearBufferMask.ColorBufferBit);
+
+                    GL.UseProgram(programId);
 
                     // Do drawing here
                     GL.EnableVertexAttribArray(0);

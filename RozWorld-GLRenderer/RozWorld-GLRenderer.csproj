@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GLMethods.cs" />
     <Compile Include="GLRenderer.cs" />
     <Compile Include="GLWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
