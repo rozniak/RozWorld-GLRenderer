@@ -92,11 +92,19 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
             GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * 9), vertexBufferData, BufferUsageHint.StaticDraw);
             GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
+            
+
             uint programId = GLMethods.LoadShaders(File.ReadAllText(@"C:\shds\vertex.glsl"),
                 File.ReadAllText(@"C:\shds\fragment.glsl"));
+
+            int uniformTimeId = GL.GetUniformLocation(programId, "fTime");
+            float uniformTime = 0;
             
             while (!Glfw.WindowShouldClose(ParentGlfwPointer)) // TODO: In future - wait for termination signal from engine
             {
+                uniformTime += (float)Glfw.GetTime();
+                Glfw.SetTime(0);
+
                 foreach (GLWindow window in Windows)
                 {
                     Glfw.MakeContextCurrent(window.GlfwPointer);
@@ -104,6 +112,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
                     GL.Clear(ClearBufferMask.ColorBufferBit);
 
                     GL.UseProgram(programId);
+                    GL.Uniform1(uniformTimeId, uniformTime);
 
                     // Do drawing here
                     GL.EnableVertexAttribArray(0);
