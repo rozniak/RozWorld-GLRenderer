@@ -11,6 +11,8 @@
 
 using Pencil.Gaming.Graphics;
 using System;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace Oddmatics.RozWorld.FrontEnd.OpenGL
 {
@@ -19,6 +21,37 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
     /// </summary>
     internal static class GLMethods
     {
+        /// <summary>
+        /// Loads a texture into memory.
+        /// </summary>
+        /// <param name="textureSource">The System.Drawing.Bitmap of the texture.</param>
+        /// <returns>The ID of the loaded texture.</returns>
+        public static uint LoadTexture(Bitmap textureSource)
+        {
+            textureSource.RotateFlip(RotateFlipType.RotateNoneFlipY); // Flip-Y as Bitmaps read from bottom to top
+
+            // Lock bitmap data into memory
+            BitmapData data = textureSource.LockBits(new Rectangle(0, 0, textureSource.Width, textureSource.Height),
+                ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+            // Now load it into OpenGL
+            int textureId = GL.GenTexture();
+
+            GL.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
+            GL.BindTexture(TextureTarget.Texture2D, textureId);
+
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, textureSource.Width, textureSource.Height,
+                0, Pencil.Gaming.Graphics.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+            GL.TexParameterI(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, new int[] { (int)TextureMagFilter.Linear });
+            GL.TexParameterI(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, new int[] { (int)TextureMinFilter.Linear });
+
+            // Unlock bits again and dispose
+            textureSource.UnlockBits(data);
+            textureSource.Dispose();
+
+            return 0;
+        }
+
         /// <summary>
         /// Loads and compiles shaders into a shader program.
         /// </summary>

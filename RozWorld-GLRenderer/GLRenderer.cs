@@ -15,6 +15,7 @@ using Pencil.Gaming.Graphics;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Drawing;
 
 namespace Oddmatics.RozWorld.FrontEnd.OpenGL
 {
@@ -83,13 +84,35 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
             float[] vertexBufferData = new float[] {
                 -1.0f, -1.0f, 0.0f,
                 1.0f, -1.0f, 0.0f,
-                0.0f, 1.0f, 0.0f
+                -1.0f, 1.0f, 0.0f,
+
+                -1.0f, 1.0f, 0.0f,
+                1.0f, 1.0f, 0.0f,
+                1.0f, -1.0f, 0.0f
             };
 
 
             int vertexBuffer = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
-            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * 9), vertexBufferData, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * 18), vertexBufferData, BufferUsageHint.StaticDraw);
+
+            // Create test UVs
+            float[] vertexUVData = new float[] {
+                0.0f, 0.0f,
+                1.0f, 0.0f,
+                0.0f, 1.0f,
+
+                0.0f, 1.0f,
+                1.0f, 1.0f,
+                1.0f, 0.0f
+            };
+
+            int vertexUVBuffer = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, vertexUVBuffer);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * 12), vertexUVData, BufferUsageHint.StaticDraw);
+
+            uint textureId = GLMethods.LoadTexture((Bitmap)Bitmap.FromFile(@"C:\shds\sample.bmp"));
+
             GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
             
@@ -118,7 +141,12 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
                     GL.EnableVertexAttribArray(0);
                     GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
                     GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 0, 0);
-                    GL.DrawArrays(BeginMode.Triangles, 0, 3);
+
+                    GL.EnableVertexAttribArray(1);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, vertexUVBuffer);
+                    GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 0, 0);
+
+                    GL.DrawArrays(BeginMode.Triangles, 0, 6);
                     GL.DisableVertexAttribArray(0);
 
                     Glfw.SwapBuffers(window.GlfwPointer);
