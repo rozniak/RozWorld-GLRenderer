@@ -111,14 +111,14 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexUVBuffer);
             GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * 12), vertexUVData, BufferUsageHint.StaticDraw);
 
-            uint textureId = GLMethods.LoadTexture((Bitmap)Bitmap.FromFile(@"C:\shds\sample.bmp"));
+            uint textureId = GLMethods.LoadTexture((Bitmap)Bitmap.FromFile(Environment.CurrentDirectory + @"\gl\sample.bmp"));
 
             GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
             
 
-            uint programId = GLMethods.LoadShaders(File.ReadAllText(@"C:\shds\vertex.glsl"),
-                File.ReadAllText(@"C:\shds\fragment.glsl"));
+            uint programId = GLMethods.LoadShaders(File.ReadAllText(Environment.CurrentDirectory + @"\gl\vertex.glsl"),
+                File.ReadAllText(Environment.CurrentDirectory + @"\gl\fragment.glsl"));
 
             int uniformTimeId = GL.GetUniformLocation(programId, "fTime");
             float uniformTime = 0;
