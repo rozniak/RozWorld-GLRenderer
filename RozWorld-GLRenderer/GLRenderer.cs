@@ -85,10 +85,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
                 -1.0f, -1.0f, 0.0f,
                 1.0f, -1.0f, 0.0f,
                 -1.0f, 1.0f, 0.0f,
-
-                -1.0f, 1.0f, 0.0f,
                 1.0f, 1.0f, 0.0f,
-                1.0f, -1.0f, 0.0f
             };
 
 
@@ -96,15 +93,22 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
             GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * 18), vertexBufferData, BufferUsageHint.StaticDraw);
 
+            // Create triangle elements
+            int[] elementBufferData = new int[] {
+                0, 1, 2, 2, 3, 1
+            };
+
+            int elementBuffer = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, elementBuffer);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, new IntPtr(sizeof(int) * 6),
+                elementBufferData, BufferUsageHint.StaticDraw);
+
             // Create test UVs
             float[] vertexUVData = new float[] {
                 0.0f, 0.0f,
                 1.0f, 0.0f,
                 0.0f, 1.0f,
-
-                0.0f, 1.0f,
-                1.0f, 1.0f,
-                1.0f, 0.0f
+                1.0f, 1.0f
             };
 
             int vertexUVBuffer = GL.GenBuffer();
@@ -146,7 +150,12 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
                     GL.BindBuffer(BufferTarget.ArrayBuffer, vertexUVBuffer);
                     GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 0, 0);
 
-                    GL.DrawArrays(BeginMode.Triangles, 0, 6);
+
+                    // Bind element buffer
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
+                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, elementBuffer);
+
+                    GL.DrawElements(BeginMode.Triangles, 6, DrawElementsType.UnsignedInt, 0);
                     GL.DisableVertexAttribArray(0);
 
                     Glfw.SwapBuffers(window.GlfwPointer);
