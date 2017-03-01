@@ -80,28 +80,44 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
             int vao = GL.GenVertexArray();
             GL.BindVertexArray(vao);
 
-            // Create test triangle
-            float[] vertexBufferData = new float[] {
-                -1.0f, -1.0f, 0.0f,
-                1.0f, -1.0f, 0.0f,
-                -1.0f, 1.0f, 0.0f,
-                1.0f, 1.0f, 0.0f,
-            };
 
+            // Create test tilemap
+            const int tileWidth = 64;
+            const int tileHeight = 64;
+            const int tilemapWidth = 32;
+            const int tilemapHeight = 32;
+            float[] tilemapVertexData = new float[tilemapWidth * tilemapHeight * 6 * 2];
 
-            int vertexBuffer = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
-            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * 18), vertexBufferData, BufferUsageHint.StaticDraw);
+            for (int y = 0; y < tilemapHeight; y++)
+            {
+                for (int x = 0; x < tilemapWidth; x++)
+                {
+                    float xCoordLeft = (tileWidth * x) / (float)firstWindow.Size.Width;
+                    float xCoordRight = (tileWidth * (x + 1)) / (float)firstWindow.Size.Width;
+                    float yCoordTop = (tileHeight * y) / (float)firstWindow.Size.Height;
+                    float yCoordBottom = (tileHeight * (y + 1)) / (float)firstWindow.Size.Height;
 
-            // Create triangle elements
-            int[] elementBufferData = new int[] {
-                0, 1, 2, 2, 3, 1
-            };
+                    int baseIndex = (y * tilemapWidth) + (x * 12);
 
-            int elementBuffer = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, elementBuffer);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, new IntPtr(sizeof(int) * 6),
-                elementBufferData, BufferUsageHint.StaticDraw);
+                    float[] quad = new float[] {
+                        xCoordLeft, yCoordTop,
+                        xCoordLeft, yCoordBottom,
+                        xCoordRight, yCoordBottom,
+
+                        xCoordRight, yCoordBottom,
+                        xCoordLeft, yCoordTop,
+                        xCoordRight, yCoordTop
+                    };
+
+                    // Copy data between arrays
+                    Array.Copy(quad, 0, tilemapVertexData, baseIndex, 12);
+                }
+            }
+
+            int tilemapBuffer = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, tilemapBuffer);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * 18), tilemapVertexData, BufferUsageHint.StaticDraw);
+
 
             // Create test UVs
             float[] vertexUVData = new float[] {
@@ -143,19 +159,15 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
 
                     // Do drawing here
                     GL.EnableVertexAttribArray(0);
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
-                    GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 0, 0);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, tilemapBuffer);
+                    GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
 
-                    GL.EnableVertexAttribArray(1);
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, vertexUVBuffer);
-                    GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 0, 0);
+                    //GL.EnableVertexAttribArray(1);
+                    //GL.BindBuffer(BufferTarget.ArrayBuffer, vertexUVBuffer);
+                    //GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 0, 0);
 
 
-                    // Bind element buffer
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
-                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, elementBuffer);
-
-                    GL.DrawElements(BeginMode.Triangles, 6, DrawElementsType.UnsignedInt, 0);
+                    GL.DrawArrays(BeginMode.Triangles, 0, tilemapVertexData.Length);
                     GL.DisableVertexAttribArray(0);
 
                     Glfw.SwapBuffers(window.GlfwPointer);

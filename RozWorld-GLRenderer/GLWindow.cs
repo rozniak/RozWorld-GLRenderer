@@ -21,15 +21,16 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
     {
         public GlfwWindowPtr GlfwPointer { get; private set; }
         public byte Id { get; private set; }
+        public Size Size { get; set; }
 
         private readonly GLRenderer Parent;
 
 
         public GLWindow(GLRenderer parent, byte windowId, GlfwWindowPtr sharedContext)
         {
-            Size resolution = RwCore.Client.DisplayResolutions[windowId];
+            Size = RwCore.Client.DisplayResolutions[windowId];
 
-            GlfwPointer = Glfw.CreateWindow(resolution.Width, resolution.Height,
+            GlfwPointer = Glfw.CreateWindow(Size.Width, Size.Height,
                 RwCore.Client.ClientWindowTitle, GlfwMonitorPtr.Null, sharedContext);
 
             Parent = parent;
