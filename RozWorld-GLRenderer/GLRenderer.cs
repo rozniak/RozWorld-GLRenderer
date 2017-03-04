@@ -97,7 +97,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
                     float yCoordTop = (tileHeight * y) / (float)firstWindow.Size.Height;
                     float yCoordBottom = (tileHeight * (y + 1)) / (float)firstWindow.Size.Height;
 
-                    int baseIndex = (y * tilemapWidth) + (x * 12);
+                    int baseIndex = (y * tilemapWidth * 12) + (x * 12);
 
                     float[] quad = new float[] {
                         xCoordLeft, yCoordTop,
@@ -116,7 +116,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
 
             int tilemapBuffer = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, tilemapBuffer);
-            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * 18), tilemapVertexData, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * tilemapVertexData.Length), tilemapVertexData, BufferUsageHint.StaticDraw);
 
 
             // Create test UVs
