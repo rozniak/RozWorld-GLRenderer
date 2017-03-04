@@ -92,10 +92,10 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
             {
                 for (int x = 0; x < tilemapWidth; x++)
                 {
-                    float xCoordLeft = (tileWidth * x) / (float)firstWindow.Size.Width;
-                    float xCoordRight = (tileWidth * (x + 1)) / (float)firstWindow.Size.Width;
-                    float yCoordTop = (tileHeight * y) / (float)firstWindow.Size.Height;
-                    float yCoordBottom = (tileHeight * (y + 1)) / (float)firstWindow.Size.Height;
+                    float xCoordLeft = ((tileWidth * x) / (float)firstWindow.Size.Width) * 2 - 1f;
+                    float xCoordRight = ((tileWidth * (x + 1)) / (float)firstWindow.Size.Width) * 2 - 1f;
+                    float yCoordTop = ((tileHeight * y) / (float)firstWindow.Size.Height) * 2 - 1f;
+                    float yCoordBottom = ((tileHeight * (y + 1)) / (float)firstWindow.Size.Height) * 2 - 1f;
 
                     int baseIndex = (y * tilemapWidth * 12) + (x * 12);
 
