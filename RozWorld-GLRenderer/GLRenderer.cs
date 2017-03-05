@@ -120,16 +120,27 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
 
 
             // Create test UVs
-            float[] vertexUVData = new float[] {
+            float[] uvQuadData = new float[] {
                 0.0f, 0.0f,
-                1.0f, 0.0f,
                 0.0f, 1.0f,
-                1.0f, 1.0f
+                1.0f, 1.0f,
+
+                1.0f, 1.0f,
+                0.0f, 0.0f,
+                1.0f, 0.0f
             };
+            float[] uvVertexData = new float[tilemapVertexData.Length];
+
+            for (int quad = 0; quad < uvVertexData.Length; quad += 12)
+            {
+                Array.Copy(uvQuadData, 0, uvVertexData, quad, 12);
+            }
+            
+            
 
             int vertexUVBuffer = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexUVBuffer);
-            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * 12), vertexUVData, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * uvVertexData.Length), uvVertexData, BufferUsageHint.StaticDraw);
 
             uint textureId = GLMethods.LoadTexture((Bitmap)Bitmap.FromFile(Environment.CurrentDirectory + @"\gl\sample.bmp"));
 
@@ -162,9 +173,9 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
                     GL.BindBuffer(BufferTarget.ArrayBuffer, tilemapBuffer);
                     GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
 
-                    //GL.EnableVertexAttribArray(1);
-                    //GL.BindBuffer(BufferTarget.ArrayBuffer, vertexUVBuffer);
-                    //GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 0, 0);
+                    GL.EnableVertexAttribArray(1);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, vertexUVBuffer);
+                    GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 0, 0);
 
 
                     GL.DrawArrays(BeginMode.Triangles, 0, tilemapVertexData.Length);
