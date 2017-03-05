@@ -94,19 +94,19 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
                 {
                     float xCoordLeft = ((tileWidth * x) / (float)firstWindow.Size.Width) * 2 - 1f;
                     float xCoordRight = ((tileWidth * (x + 1)) / (float)firstWindow.Size.Width) * 2 - 1f;
-                    float yCoordTop = ((tileHeight * y) / (float)firstWindow.Size.Height) * 2 - 1f;
-                    float yCoordBottom = ((tileHeight * (y + 1)) / (float)firstWindow.Size.Height) * 2 - 1f;
+                    float yCoordBottom = ((tileHeight * y) / (float)firstWindow.Size.Height) * 2 - 1f;
+                    float yCoordTop = ((tileHeight * (y + 1)) / (float)firstWindow.Size.Height) * 2 - 1f;
 
                     int baseIndex = (y * tilemapWidth * 12) + (x * 12);
 
                     float[] quad = new float[] {
-                        xCoordLeft, yCoordTop,
                         xCoordLeft, yCoordBottom,
-                        xCoordRight, yCoordBottom,
-
-                        xCoordRight, yCoordBottom,
                         xCoordLeft, yCoordTop,
-                        xCoordRight, yCoordTop
+                        xCoordRight, yCoordTop,
+
+                        xCoordRight, yCoordTop,
+                        xCoordLeft, yCoordBottom,
+                        xCoordRight, yCoordBottom
                     };
 
                     // Copy data between arrays
