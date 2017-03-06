@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Drawing;
+using Pencil.Gaming.MathUtils;
 
 namespace Oddmatics.RozWorld.FrontEnd.OpenGL
 {
@@ -33,6 +34,10 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
 
         public GlfwWindowPtr ParentGlfwPointer { get; private set; }
         private List<GLWindow> Windows;
+
+
+        // Testing purposes
+        private int TranslationMatrixId;
 
 
         public override bool Initialise()
@@ -151,8 +156,18 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
             uint programId = GLMethods.LoadShaders(File.ReadAllText(Environment.CurrentDirectory + @"\gl\vertex.glsl"),
                 File.ReadAllText(Environment.CurrentDirectory + @"\gl\fragment.glsl"));
 
+            // Get fTime
             int uniformTimeId = GL.GetUniformLocation(programId, "fTime");
             float uniformTime = 0;
+
+            // Get TranslationMatrix
+            TranslationMatrixId = GL.GetUniformLocation(programId, "TranslationMatrix");
+            GL.UniformMatrix4(TranslationMatrixId, 1, false, new float[] {
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 1
+            });
             
             while (!Glfw.WindowShouldClose(ParentGlfwPointer)) // TODO: In future - wait for termination signal from engine
             {
