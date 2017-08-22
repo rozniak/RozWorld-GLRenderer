@@ -21,7 +21,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
     {
         public GlfwWindowPtr GlfwPointer { get; private set; }
         public byte Id { get; private set; }
-        public Size Size { get; set; }
+        public RwSize Size { get; set; }
 
         private readonly GLRenderer Parent;
 

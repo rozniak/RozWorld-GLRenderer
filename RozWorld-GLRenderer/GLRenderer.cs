@@ -17,6 +17,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Drawing;
 using Pencil.Gaming.MathUtils;
+using Oddmatics.RozWorld.API.Client.Graphics;
+using Oddmatics.RozWorld.API.Generic;
 
 namespace Oddmatics.RozWorld.FrontEnd.OpenGL
 {
@@ -39,6 +41,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
         // Testing purposes
         private int TranslationMatrixId;
 
+        public override event EventHandler Closed;
 
         public override bool Initialise()
         {
@@ -208,6 +211,8 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
         public override void Stop()
         {
             Glfw.Terminate();
+
+            Closed?.Invoke(this, EventArgs.Empty);
             // TODO: Handle terminate signal
         }
 
@@ -218,6 +223,16 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
             Initialised = false;
 
             Glfw.Terminate();
+        }
+
+        public override IRendererContext GetContext(byte window)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override RwResult LoadFont(string filepath, int pointSize, string identifier)
+        {
+            throw new NotImplementedException();
         }
     }
 }
