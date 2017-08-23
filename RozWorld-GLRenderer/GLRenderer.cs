@@ -8,17 +8,16 @@
  *
  * Sharing, editing and general licence term information can be found inside of the "LICENCE.MD" file that should be located in the root of this project's directory structure.
  */
-
-using Oddmatics.RozWorld.API.Client;
+ 
+using Oddmatics.RozWorld.API.Client.Graphics;
+using Oddmatics.RozWorld.API.Generic;
 using Pencil.Gaming;
 using Pencil.Gaming.Graphics;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Drawing;
-using Pencil.Gaming.MathUtils;
-using Oddmatics.RozWorld.API.Client.Graphics;
-using Oddmatics.RozWorld.API.Generic;
+using System.IO;
+using System.Timers;
 
 namespace Oddmatics.RozWorld.FrontEnd.OpenGL
 {
@@ -27,22 +26,71 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
     /// </summary>
     public sealed class GLRenderer : Renderer
     {
+        /// <summary>
+        /// Gets the value that indicates whether this renderer has been initialised.
+        /// </summary>
         public override bool Initialised { get; protected set; }
+
+        /// <summary>
+        /// Gets the amount of windows active in this renderer.
+        /// </summary>
         public override byte WindowCount
         {
             get { return (byte)Windows.Count; }
         }
 
 
+        /// <summary>
+        /// The GLFW pointer to the parent window of this renderer.
+        /// </summary>
         public GlfwWindowPtr ParentGlfwPointer { get; private set; }
+
+        /// <summary>
+        /// The collection of windows that are currently active.
+        /// </summary>
         private List<GLWindow> Windows;
 
 
+        #region OpenGL Resource Pointers
+
+        private uint ProgramId;
+
         // Testing purposes
+        private int TilemapBuffer;
+
+        private float[] TilemapVertexData;
+
         private int TranslationMatrixId;
 
+        private int UniformTimeId;
+        private float UniformTime;
+
+        private int VertexUVBuffer;
+
+        #endregion
+
+
+        /// <summary>
+        /// Occurs when the user closes this renderer's last window.
+        /// </summary>
         public override event EventHandler Closed;
 
+
+
+        /// <summary>
+        /// Gets the render context of a window.
+        /// </summary>
+        /// <param name="window">The index of the window.</param>
+        /// <returns>The IRendererContext used by the window if it was found, null otherwise.</returns>
+        public override IRendererContext GetContext(byte window)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Initialises this renderer.
+        /// </summary>
+        /// <returns>True if the renderer was successfully initialised.</returns>
         public override bool Initialise()
         {
             if (Initialised)
@@ -58,24 +106,88 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
             Glfw.WindowHint(WindowHint.ContextVersionMinor, 2);
             Glfw.WindowHint(WindowHint.OpenGLForwardCompat, 1);
             Glfw.WindowHint(WindowHint.OpenGLProfile, (int)OpenGLProfile.Core);
-
+            
             Initialised = true;
 
             return true; // For now - this should report back if there were any problems
         }
 
-        public override void SetWindowSize(byte window, short width, short height)
+        /// <summary>
+        /// Loads a font from the specified filepath and point size, and maps it to the given identifier.
+        /// </summary>
+        /// <param name="filepath">The filepath of the font.</param>
+        /// <param name="pointSize">The point size to load.</param>
+        /// <param name="identifier">The font identifier.</param>
+        /// <returns>Success if the font was loaded and mapped to the identifier.</returns>
+        public override RwResult LoadFont(string filepath, int pointSize, string identifier)
         {
-            // TODO: Implement this
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Renders the next frame to all contexts.
+        /// </summary>
+        public override void RenderFrame()
+        {
+            if (Glfw.WindowShouldClose(ParentGlfwPointer))
+                Stop();
+
+            UniformTime += (float)Glfw.GetTime();
+            Glfw.SetTime(0);
+
+            foreach (GLWindow window in Windows)
+            {
+                Glfw.MakeContextCurrent(window.GlfwPointer);
+
+                GL.Clear(ClearBufferMask.ColorBufferBit);
+
+                GL.UseProgram(ProgramId);
+                GL.Uniform1(UniformTimeId, UniformTime);
+
+                // Do drawing here
+                GL.EnableVertexAttribArray(0);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, TilemapBuffer);
+                GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
+
+                GL.EnableVertexAttribArray(1);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, VertexUVBuffer);
+                GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 0, 0);
+
+
+                GL.DrawArrays(BeginMode.Triangles, 0, TilemapVertexData.Length);
+                GL.DisableVertexAttribArray(0);
+
+                Glfw.SwapBuffers(window.GlfwPointer);
+            }
+
+            Glfw.PollEvents();
+        }
+
+        /// <summary>
+        /// Sets the amount of windows in this renderer.
+        /// </summary>
+        /// <param name="count">The amount of windows.</param>
         public override void SetWindows(byte count)
         {
             // TODO: Implement this
             throw new System.NotImplementedException();
         }
 
+        /// <summary>
+        /// Sets the size of a window.
+        /// </summary>
+        /// <param name="window">The index of the window.</param>
+        /// <param name="width">The new width.</param>
+        /// <param name="height">The new height</param>
+        public override void SetWindowSize(byte window, short width, short height)
+        {
+            // TODO: Implement this
+            throw new System.NotImplementedException();
+        }
+
+        /// <summary>
+        /// Starts this renderer.
+        /// </summary>
         public override void Start()
         {
             var firstWindow = new GLWindow(this, 0, GlfwWindowPtr.Null);
@@ -94,7 +206,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
             const int tileHeight = 64;
             const int tilemapWidth = 32;
             const int tilemapHeight = 32;
-            float[] tilemapVertexData = new float[tilemapWidth * tilemapHeight * 6 * 2];
+            TilemapVertexData = new float[tilemapWidth * tilemapHeight * 6 * 2];
 
             for (int y = 0; y < tilemapHeight; y++)
             {
@@ -118,13 +230,13 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
                     };
 
                     // Copy data between arrays
-                    Array.Copy(quad, 0, tilemapVertexData, baseIndex, 12);
+                    Array.Copy(quad, 0, TilemapVertexData, baseIndex, 12);
                 }
             }
 
-            int tilemapBuffer = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, tilemapBuffer);
-            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * tilemapVertexData.Length), tilemapVertexData, BufferUsageHint.StaticDraw);
+            TilemapBuffer = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, TilemapBuffer);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * TilemapVertexData.Length), TilemapVertexData, BufferUsageHint.StaticDraw);
 
 
             // Create test UVs
@@ -137,7 +249,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
                 0.0f, 0.0f,
                 1.0f, 0.0f
             };
-            float[] uvVertexData = new float[tilemapVertexData.Length];
+            float[] uvVertexData = new float[TilemapVertexData.Length];
 
             for (int quad = 0; quad < uvVertexData.Length; quad += 12)
             {
@@ -146,8 +258,8 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
             
             
 
-            int vertexUVBuffer = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vertexUVBuffer);
+            VertexUVBuffer = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, VertexUVBuffer);
             GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * uvVertexData.Length), uvVertexData, BufferUsageHint.StaticDraw);
 
             uint textureId = GLMethods.LoadTexture((Bitmap)Bitmap.FromFile(Environment.CurrentDirectory + @"\gl\sample.bmp"));
@@ -156,83 +268,43 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
 
             
 
-            uint programId = GLMethods.LoadShaders(File.ReadAllText(Environment.CurrentDirectory + @"\gl\vertex.glsl"),
-                File.ReadAllText(Environment.CurrentDirectory + @"\gl\fragment.glsl"));
+            ProgramId = GLMethods.LoadShaders(
+                File.ReadAllText(Environment.CurrentDirectory + @"\gl\vertex.glsl"),
+                File.ReadAllText(Environment.CurrentDirectory + @"\gl\fragment.glsl")
+                );
 
             // Get fTime
-            int uniformTimeId = GL.GetUniformLocation(programId, "fTime");
-            float uniformTime = 0;
+            UniformTimeId = GL.GetUniformLocation(ProgramId, "fTime");
+            UniformTime = 0f;
 
             // Get TranslationMatrix
-            TranslationMatrixId = GL.GetUniformLocation(programId, "TranslationMatrix");
+            TranslationMatrixId = GL.GetUniformLocation(ProgramId, "TranslationMatrix");
             GL.UniformMatrix4(TranslationMatrixId, 1, false, new float[] {
                 1, 0, 0, 0,
                 0, 1, 0, 0,
                 0, 0, 0, 0,
                 0, 0, 0, 1
             });
-            
-            while (!Glfw.WindowShouldClose(ParentGlfwPointer)) // TODO: In future - wait for termination signal from engine
-            {
-                uniformTime += (float)Glfw.GetTime();
-                Glfw.SetTime(0);
-
-                foreach (GLWindow window in Windows)
-                {
-                    Glfw.MakeContextCurrent(window.GlfwPointer);
-
-                    GL.Clear(ClearBufferMask.ColorBufferBit);
-
-                    GL.UseProgram(programId);
-                    GL.Uniform1(uniformTimeId, uniformTime);
-
-                    // Do drawing here
-                    GL.EnableVertexAttribArray(0);
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, tilemapBuffer);
-                    GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
-
-                    GL.EnableVertexAttribArray(1);
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, vertexUVBuffer);
-                    GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 0, 0);
-
-
-                    GL.DrawArrays(BeginMode.Triangles, 0, tilemapVertexData.Length);
-                    GL.DisableVertexAttribArray(0);
-
-                    Glfw.SwapBuffers(window.GlfwPointer);
-                }
-
-                Glfw.PollEvents();
-            }
-
-            Stop();
         }
 
+        /// <summary>
+        /// Stops this renderer.
+        /// </summary>
         public override void Stop()
         {
             Glfw.Terminate();
 
             Closed?.Invoke(this, EventArgs.Empty);
-            // TODO: Handle terminate signal
         }
 
-
+        
+        /// <summary>
+        /// [Event] GLFW/GL error occurred.
+        /// </summary>
         private void OnError(GlfwError code, string desc)
         {
             // Handle errors here
-            Initialised = false;
-
-            Glfw.Terminate();
-        }
-
-        public override IRendererContext GetContext(byte window)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override RwResult LoadFont(string filepath, int pointSize, string identifier)
-        {
-            throw new NotImplementedException();
+            Stop();
         }
     }
 }
