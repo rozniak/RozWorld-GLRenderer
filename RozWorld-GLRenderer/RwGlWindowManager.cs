@@ -1,5 +1,5 @@
 ﻿/**
- * Oddmatics.RozWorld.FrontEnd.OpenGL.GLRenderer -- RozWorld OpenGL Renderer
+ * Oddmatics.RozWorld.FrontEnd.OpenGl.RwGlWindowManager -- RozWorld OpenGL Window Manager
  *
  * This source-code is part of the OpenGL renderer for the RozWorld project by rozza of Oddmatics:
  * <<http://www.oddmatics.uk>>
@@ -8,37 +8,32 @@
  *
  * Sharing, editing and general licence term information can be found inside of the "LICENCE.MD" file that should be located in the root of this project's directory structure.
  */
- 
-using Oddmatics.RozWorld.API.Client.Graphics;
-using Oddmatics.RozWorld.API.Generic;
+
+using Oddmatics.RozWorld.API.Client;
+using Oddmatics.RozWorld.API.Client.Window;
 using Pencil.Gaming;
 using Pencil.Gaming.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Timers;
 
-namespace Oddmatics.RozWorld.FrontEnd.OpenGL
+namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 {
     /// <summary>
     /// Represents the OpenGL based renderer that will be loaded by the RozWorld client.
     /// </summary>
-    public sealed class GLRenderer : Renderer
+    public sealed class RwGlWindowManager : IWindowManager
     {
         /// <summary>
-        /// Gets the value that indicates whether this renderer has been initialised.
+        /// Gets the 'nice' name of this window manager.
         /// </summary>
-        public override bool Initialised { get; protected set; }
+        public string NiceName { get { return "RozWorld OpenGL 3.2 Window Manager"; } }
 
         /// <summary>
-        /// Gets the amount of windows active in this renderer.
+        /// Gets the reference to the parent RozWorld client instance.
         /// </summary>
-        public override byte WindowCount
-        {
-            get { return (byte)Windows.Count; }
-        }
-
+        public IRwClient ParentClient { get; set; }
 
         /// <summary>
         /// The GLFW pointer to the parent window of this renderer.
@@ -46,20 +41,30 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
         public GlfwWindowPtr ParentGlfwPointer { get; private set; }
 
         /// <summary>
+        /// Gets the amount of windows active in this renderer.
+        /// </summary>
+        public byte WindowCount
+        {
+            get { return (byte)Windows.Count; }
+            set { throw new NotImplementedException(); }
+        }
+
+
+        /// <summary>
         /// The collection of windows that are currently active.
         /// </summary>
-        private List<GLWindow> Windows;
+        private List<RwGlWindow> Windows;
 
 
         #region OpenGL Resource Pointers
 
-        private uint ProgramId;
-
-        // Testing purposes
         private int TilemapBuffer;
 
         private float[] TilemapVertexData;
 
+        private uint ProgramId;
+
+        // Testing purposes
         private int TranslationMatrixId;
 
         private int UniformTimeId;
@@ -73,61 +78,39 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
         /// <summary>
         /// Occurs when the user closes this renderer's last window.
         /// </summary>
-        public override event EventHandler Closed;
+        public event EventHandler Closed;
+        
 
+        /// <summary>
+        /// Initializes a new instance of the RwGlWindowManager class.
+        /// </summary>
+        public RwGlWindowManager()
+        {
+            Windows = new List<RwGlWindow>();
+        }
 
 
         /// <summary>
-        /// Gets the render context of a window.
+        /// Retrieves the latest input state from this window manager.
         /// </summary>
-        /// <param name="window">The index of the window.</param>
-        /// <returns>The IRendererContext used by the window if it was found, null otherwise.</returns>
-        public override IRendererContext GetContext(byte window)
+        /// <returns>The latest input state.</returns>
+        public InputUpdate GetInputEvents()
         {
-            throw new NotImplementedException();
+            //
+            // TODO: Implement this properly
+            //
+
+            var inputUpdate = new InputUpdate();
+
+            inputUpdate.FinalizeForReporting();
+
+            return inputUpdate;
         }
 
         /// <summary>
-        /// Initialises this renderer.
+        /// Renders the next game frame.
         /// </summary>
-        /// <returns>True if the renderer was successfully initialised.</returns>
-        public override bool Initialise()
-        {
-            if (Initialised)
-                throw new InvalidOperationException("GLRenderer.Initialise: The renderer is already initialised.");
-
-            Windows = new List<GLWindow>();
-
-            Glfw.Init();
-
-            Glfw.SetErrorCallback(OnError);
-
-            Glfw.WindowHint(WindowHint.ContextVersionMajor, 3);
-            Glfw.WindowHint(WindowHint.ContextVersionMinor, 2);
-            Glfw.WindowHint(WindowHint.OpenGLForwardCompat, 1);
-            Glfw.WindowHint(WindowHint.OpenGLProfile, (int)OpenGLProfile.Core);
-            
-            Initialised = true;
-
-            return true; // For now - this should report back if there were any problems
-        }
-
-        /// <summary>
-        /// Loads a font from the specified filepath and point size, and maps it to the given identifier.
-        /// </summary>
-        /// <param name="filepath">The filepath of the font.</param>
-        /// <param name="pointSize">The point size to load.</param>
-        /// <param name="identifier">The font identifier.</param>
-        /// <returns>Success if the font was loaded and mapped to the identifier.</returns>
-        public override RwResult LoadFont(string filepath, int pointSize, string identifier)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Renders the next frame to all contexts.
-        /// </summary>
-        public override void RenderFrame()
+        public void RenderFrame()
         {
             if (Glfw.WindowShouldClose(ParentGlfwPointer))
                 Stop();
@@ -135,7 +118,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
             UniformTime += (float)Glfw.GetTime();
             Glfw.SetTime(0);
 
-            foreach (GLWindow window in Windows)
+            foreach (RwGlWindow window in Windows)
             {
                 Glfw.MakeContextCurrent(window.GlfwPointer);
 
@@ -164,42 +147,31 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
         }
 
         /// <summary>
-        /// Sets the amount of windows in this renderer.
-        /// </summary>
-        /// <param name="count">The amount of windows.</param>
-        public override void SetWindows(byte count)
-        {
-            // TODO: Implement this
-            throw new System.NotImplementedException();
-        }
-
-        /// <summary>
-        /// Sets the size of a window.
-        /// </summary>
-        /// <param name="window">The index of the window.</param>
-        /// <param name="width">The new width.</param>
-        /// <param name="height">The new height</param>
-        public override void SetWindowSize(byte window, short width, short height)
-        {
-            // TODO: Implement this
-            throw new System.NotImplementedException();
-        }
-
-        /// <summary>
         /// Starts this renderer.
         /// </summary>
-        public override void Start()
+        public bool Start(IRwClient clientReference)
         {
-            var firstWindow = new GLWindow(this, 0, GlfwWindowPtr.Null);
+            // Add client reference first
+            //
+            ParentClient = clientReference;
+
+            // Set up GLFW
+            //
+            Glfw.Init();
+
+            Glfw.SetErrorCallback(OnError);
+
+            Glfw.WindowHint(WindowHint.ContextVersionMajor, 3);
+            Glfw.WindowHint(WindowHint.ContextVersionMinor, 2);
+            Glfw.WindowHint(WindowHint.OpenGLForwardCompat, 1);
+            Glfw.WindowHint(WindowHint.OpenGLProfile, (int)OpenGLProfile.Core);
+
+            var firstWindow = new RwGlWindow(this, 0, GlfwWindowPtr.Null);
+
             ParentGlfwPointer = firstWindow.GlfwPointer;
             Windows.Add(firstWindow);
 
             Glfw.MakeContextCurrent(ParentGlfwPointer);
-
-            // Create VAO initially
-            int vao = GL.GenVertexArray();
-            GL.BindVertexArray(vao);
-
 
             // Create test tilemap
             const int tileWidth = 64;
@@ -238,6 +210,9 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
             GL.BindBuffer(BufferTarget.ArrayBuffer, TilemapBuffer);
             GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * TilemapVertexData.Length), TilemapVertexData, BufferUsageHint.StaticDraw);
 
+            // Create VAO initially
+            int vao = GL.GenVertexArray();
+            GL.BindVertexArray(vao);
 
             // Create test UVs
             float[] uvQuadData = new float[] {
@@ -255,20 +230,16 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
             {
                 Array.Copy(uvQuadData, 0, uvVertexData, quad, 12);
             }
-            
-            
 
             VertexUVBuffer = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexUVBuffer);
             GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * uvVertexData.Length), uvVertexData, BufferUsageHint.StaticDraw);
 
-            uint textureId = GLMethods.LoadTexture((Bitmap)Bitmap.FromFile(Environment.CurrentDirectory + @"\gl\sample.bmp"));
+            uint textureId = RwGlMethods.LoadTexture((Bitmap)Bitmap.FromFile(Environment.CurrentDirectory + @"\gl\sample.bmp"));
 
             GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
             
-
-            ProgramId = GLMethods.LoadShaders(
+            ProgramId = RwGlMethods.LoadShaders(
                 File.ReadAllText(Environment.CurrentDirectory + @"\gl\vertex.glsl"),
                 File.ReadAllText(Environment.CurrentDirectory + @"\gl\fragment.glsl")
                 );
@@ -285,13 +256,19 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGL
                 0, 0, 0, 0,
                 0, 0, 0, 1
             });
+
+            return true;
         }
 
         /// <summary>
         /// Stops this renderer.
         /// </summary>
-        public override void Stop()
+        public void Stop()
         {
+            // Destroy client reference
+            //
+            ParentClient = null;
+
             Glfw.Terminate();
 
             Closed?.Invoke(this, EventArgs.Empty);

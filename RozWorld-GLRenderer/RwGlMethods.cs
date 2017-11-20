@@ -1,5 +1,5 @@
 ﻿/**
- * Oddmatics.RozWorld.FrontEnd.OpenGL.GLMethods -- RozWorld OpenGL Methods
+ * Oddmatics.RozWorld.FrontEnd.OpenGl.RwGlMethods -- RozWorld OpenGL Methods
  *
  * This source-code is part of the OpenGL renderer for the RozWorld project by rozza of Oddmatics:
  * <<http://www.oddmatics.uk>>
@@ -14,12 +14,12 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 
-namespace Oddmatics.RozWorld.FrontEnd.OpenGL
+namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 {
     /// <summary>
     /// Represents the internal OpenGL methods used by the renderer.
     /// </summary>
-    internal static class GLMethods
+    internal static class RwGlMethods
     {
         /// <summary>
         /// Loads a texture into memory.
