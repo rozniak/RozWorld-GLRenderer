@@ -51,6 +51,11 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 
 
         /// <summary>
+        /// The current input state.
+        /// </summary>
+        private InputUpdate CurrentInputState { get; set; }
+
+        /// <summary>
         /// The collection of windows that are currently active.
         /// </summary>
         private List<RwGlWindow> Windows;
@@ -86,6 +91,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
         /// </summary>
         public RwGlWindowManager()
         {
+            CurrentInputState = new InputUpdate();
             Windows = new List<RwGlWindow>();
         }
 
@@ -96,15 +102,13 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
         /// <returns>The latest input state.</returns>
         public InputUpdate GetInputEvents()
         {
-            //
-            // TODO: Implement this properly
-            //
+            var thisUpdate = CurrentInputState;
 
-            var inputUpdate = new InputUpdate();
+            thisUpdate.FinalizeForReporting();
+            
+            CurrentInputState = new InputUpdate(thisUpdate.DownedInputs);
 
-            inputUpdate.FinalizeForReporting();
-
-            return inputUpdate;
+            return thisUpdate;
         }
 
         /// <summary>
@@ -135,7 +139,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
                 GL.EnableVertexAttribArray(1);
                 GL.BindBuffer(BufferTarget.ArrayBuffer, VertexUVBuffer);
                 GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 0, 0);
-
+                
 
                 GL.DrawArrays(BeginMode.Triangles, 0, TilemapVertexData.Length);
                 GL.DisableVertexAttribArray(0);
@@ -166,7 +170,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
             Glfw.WindowHint(WindowHint.OpenGLForwardCompat, 1);
             Glfw.WindowHint(WindowHint.OpenGLProfile, (int)OpenGLProfile.Core);
 
-            var firstWindow = new RwGlWindow(this, 0, GlfwWindowPtr.Null);
+            var firstWindow = new RwGlWindow(this, 0, GlfwWindowPtr.Null, OnChar, OnKey);
 
             ParentGlfwPointer = firstWindow.GlfwPointer;
             Windows.Add(firstWindow);
@@ -274,7 +278,15 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
             Closed?.Invoke(this, EventArgs.Empty);
         }
 
-        
+
+        /// <summary>
+        /// [Event] GLFW filtered keyboard event occurred.
+        /// </summary>
+        private void OnChar(GlfwWindowPtr wnd, char ch)
+        {
+            CurrentInputState.ReportConsoleInput(ch);
+        }
+
         /// <summary>
         /// [Event] GLFW/GL error occurred.
         /// </summary>
@@ -282,6 +294,19 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
         {
             // Handle errors here
             Stop();
+        }
+
+        /// <summary>
+        /// [Event] GLFW keyboard event occurred.
+        /// </summary>
+        private void OnKey(GlfwWindowPtr wnd, Key key, int scanCode, KeyAction action, KeyModifiers mods)
+        {
+            string inputString = "vk." + key.ToString();
+
+            if (action == KeyAction.Press)
+                CurrentInputState.ReportPress(inputString);
+            else if (action == KeyAction.Release)
+                CurrentInputState.ReportRelease(inputString);
         }
     }
 }

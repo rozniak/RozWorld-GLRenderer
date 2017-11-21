@@ -8,7 +8,7 @@
  *
  * Sharing, editing and general licence term information can be found inside of the "LICENCE.MD" file that should be located in the root of this project's directory structure.
  */
-
+ 
 using Oddmatics.RozWorld.API.Generic;
 using Pencil.Gaming;
 
@@ -47,7 +47,9 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
         /// <param name="parent">The parent renderer instance.</param>
         /// <param name="windowId">The ID of this window.</param>
         /// <param name="sharedContext">The GLFW pointer to use for sharing GL contexts.</param>
-        public RwGlWindow(RwGlWindowManager parent, byte windowId, GlfwWindowPtr sharedContext)
+        /// <param name="keyEventDelegate">The delegate handler for GLFW key events.</param>
+        public RwGlWindow(RwGlWindowManager parent, byte windowId, GlfwWindowPtr sharedContext,
+            GlfwCharFun charEventDelegate, GlfwKeyFun keyEventDelegate)
         {
             Size = parent.ParentClient.DisplayResolutions[windowId];
 
@@ -56,6 +58,11 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 
             Parent = parent;
             Id = windowId;
+
+            // Set GLFW event callbacks for this window
+            //
+            Glfw.SetCharCallback(GlfwPointer, charEventDelegate);
+            Glfw.SetKeyCallback(GlfwPointer, keyEventDelegate);
         }
     }
 }
