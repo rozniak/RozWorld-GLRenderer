@@ -56,6 +56,11 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
         private InputUpdate CurrentInputState { get; set; }
 
         /// <summary>
+        /// The FreeType service instance.
+        /// </summary>
+        private RwGlFreeTypeService FreeTypeService { get; set; }
+
+        /// <summary>
         /// The collection of windows that are currently active.
         /// </summary>
         private List<RwGlWindow> Windows;
@@ -177,6 +182,10 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 
             Glfw.MakeContextCurrent(ParentGlfwPointer);
 
+            // Create font service instance
+            //
+            FreeTypeService = new RwGlFreeTypeService(ParentGlfwPointer);
+
             // Create test tilemap
             const int tileWidth = 64;
             const int tileHeight = 64;
@@ -272,6 +281,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
             // Destroy client reference
             //
             ParentClient = null;
+            FreeTypeService.Dispose();
 
             Glfw.Terminate();
 
