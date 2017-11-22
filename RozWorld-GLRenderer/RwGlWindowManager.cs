@@ -13,6 +13,7 @@ using Oddmatics.RozWorld.API.Client;
 using Oddmatics.RozWorld.API.Client.Window;
 using Pencil.Gaming;
 using Pencil.Gaming.Graphics;
+using SharpFont;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -68,9 +69,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 
         #region OpenGL Resource Pointers
 
-        private int TilemapBuffer;
-
-        private float[] TilemapVertexData;
+        private Face TestFontFace;
 
         private uint ProgramId;
 
@@ -79,8 +78,6 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 
         private int UniformTimeId;
         private float UniformTime;
-
-        private int VertexUVBuffer;
 
         #endregion
 
@@ -136,18 +133,20 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
                 GL.UseProgram(ProgramId);
                 GL.Uniform1(UniformTimeId, UniformTime);
 
-                // Do drawing here
-                GL.EnableVertexAttribArray(0);
-                GL.BindBuffer(BufferTarget.ArrayBuffer, TilemapBuffer);
-                GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
+                RwGlTypeFaceBufferData vbos = FreeTypeService.GetStringVboData("This is my text", TestFontFace);
 
-                GL.EnableVertexAttribArray(1);
-                GL.BindBuffer(BufferTarget.ArrayBuffer, VertexUVBuffer);
-                GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 0, 0);
+                // Do drawing here
+                //GL.EnableVertexAttribArray(0);
+                //GL.BindBuffer(BufferTarget.ArrayBuffer, TilemapBuffer);
+                //GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
+
+                //GL.EnableVertexAttribArray(1);
+                //GL.BindBuffer(BufferTarget.ArrayBuffer, VertexUVBuffer);
+                //GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 0, 0);
                 
 
-                GL.DrawArrays(BeginMode.Triangles, 0, TilemapVertexData.Length);
-                GL.DisableVertexAttribArray(0);
+                //GL.DrawArrays(BeginMode.Triangles, 0, TilemapVertexData.Length);
+                //GL.DisableVertexAttribArray(0);
 
                 Glfw.SwapBuffers(window.GlfwPointer);
             }
@@ -182,74 +181,21 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 
             Glfw.MakeContextCurrent(ParentGlfwPointer);
 
+            // Set pixel storage parameters
+            //
+            GL.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
+
             // Create font service instance
             //
             FreeTypeService = new RwGlFreeTypeService(ParentGlfwPointer);
 
-            // Create test tilemap
-            const int tileWidth = 64;
-            const int tileHeight = 64;
-            const int tilemapWidth = 32;
-            const int tilemapHeight = 32;
-            TilemapVertexData = new float[tilemapWidth * tilemapHeight * 6 * 2];
-
-            for (int y = 0; y < tilemapHeight; y++)
-            {
-                for (int x = 0; x < tilemapWidth; x++)
-                {
-                    float xCoordLeft = ((tileWidth * x) / (float)firstWindow.Size.Width) * 2 - 1f;
-                    float xCoordRight = ((tileWidth * (x + 1)) / (float)firstWindow.Size.Width) * 2 - 1f;
-                    float yCoordBottom = ((tileHeight * y) / (float)firstWindow.Size.Height) * 2 - 1f;
-                    float yCoordTop = ((tileHeight * (y + 1)) / (float)firstWindow.Size.Height) * 2 - 1f;
-
-                    int baseIndex = (y * tilemapWidth * 12) + (x * 12);
-
-                    float[] quad = new float[] {
-                        xCoordLeft, yCoordBottom,
-                        xCoordLeft, yCoordTop,
-                        xCoordRight, yCoordTop,
-
-                        xCoordRight, yCoordTop,
-                        xCoordLeft, yCoordBottom,
-                        xCoordRight, yCoordBottom
-                    };
-
-                    // Copy data between arrays
-                    Array.Copy(quad, 0, TilemapVertexData, baseIndex, 12);
-                }
-            }
-
-            TilemapBuffer = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, TilemapBuffer);
-            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * TilemapVertexData.Length), TilemapVertexData, BufferUsageHint.StaticDraw);
-
-            // Create VAO initially
-            int vao = GL.GenVertexArray();
-            GL.BindVertexArray(vao);
-
-            // Create test UVs
-            float[] uvQuadData = new float[] {
-                0.0f, 0.0f,
-                0.0f, 1.0f,
-                1.0f, 1.0f,
-
-                1.0f, 1.0f,
-                0.0f, 0.0f,
-                1.0f, 0.0f
-            };
-            float[] uvVertexData = new float[TilemapVertexData.Length];
-
-            for (int quad = 0; quad < uvVertexData.Length; quad += 12)
-            {
-                Array.Copy(uvQuadData, 0, uvVertexData, quad, 12);
-            }
-
-            VertexUVBuffer = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, VertexUVBuffer);
-            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * uvVertexData.Length), uvVertexData, BufferUsageHint.StaticDraw);
-
-            uint textureId = RwGlMethods.LoadTexture((Bitmap)Bitmap.FromFile(Environment.CurrentDirectory + @"\gl\sample.bmp"));
-
+            // Load font face
+            //
+            TestFontFace = new Face(FreeTypeService.FreeTypeLibrary, Environment.CurrentDirectory + @"\gl\ShareTechMono-Regular.ttf");
+            TestFontFace.SetCharSize(0, 12, 0, 96);
+            
+            // Set up remaining OpenGL stuff
+            //
             GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
             
             ProgramId = RwGlMethods.LoadShaders(

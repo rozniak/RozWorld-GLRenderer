@@ -1,5 +1,5 @@
 ﻿/**
- * Oddmatics.RozWorld.FrontEnd.OpenGl.RwGlWindow -- RozWorld OpenGL Window
+ * Oddmatics.RozWorld.FrontEnd.OpenGl.RwGlFreeTypeService -- RozWorld FreeType OpenGL Service
  *
  * This source-code is part of the OpenGL renderer for the RozWorld project by rozza of Oddmatics:
  * <<http://www.oddmatics.uk>>
@@ -10,16 +10,29 @@
  */
 
 using Pencil.Gaming;
+using Pencil.Gaming.Graphics;
 using SharpFont;
 using System;
+using System.Collections.Generic;
 
 namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 {
     /// <summary>
     /// Represents an implementation for FreeType rendering on an RozWorld OpenGL window manager.
     /// </summary>
-    public sealed class RwGlFreeTypeService : IDisposable
+    internal sealed class RwGlFreeTypeService : IDisposable
     {
+        /// <summary>
+        /// Gets the FreeType library instance.
+        /// </summary>
+        public Library FreeTypeLibrary { get; private set; }
+
+
+        /// <summary>
+        /// The storage for fonts and their respective OpenGL texture pointers.
+        /// </summary>
+        private Dictionary<Face, RwGlTypeFaceData> RenderedFontReference { get; set; }
+
         /// <summary>
         /// The shared OpenGL context pointer.
         /// </summary>
@@ -32,7 +45,29 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
         /// <param name="sharedGlContext">The shared OpenGL context pointer.</param>
         public RwGlFreeTypeService(GlfwWindowPtr sharedGlContext)
         {
+            RenderedFontReference = new Dictionary<Face, RwGlTypeFaceData>();
             SharedGlContext = sharedGlContext;
+        }
+
+
+        /// <summary>
+        /// Calculates and retrieves VBO data for the given string as the specified font face.
+        /// </summary>
+        /// <param name="text">The string to provide VBO data for.</param>
+        /// <param name="face">The FreeType font face to use.</param>
+        public RwGlTypeFaceBufferData GetStringVboData(string text, Face face)
+        {
+            RwGlTypeFaceData typeFace = null;
+
+            if (RenderedFontReference.ContainsKey(face))
+                typeFace = RenderedFontReference[face];
+            else
+            {
+                typeFace = new RwGlTypeFaceData(face);
+                RenderedFontReference.Add(face, typeFace);
+            }
+
+            return typeFace.GetVboForString(text);
         }
 
 

@@ -37,7 +37,6 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
             // Now load it into OpenGL
             int textureId = GL.GenTexture();
 
-            GL.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
             GL.BindTexture(TextureTarget.Texture2D, textureId);
 
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, textureSource.Width, textureSource.Height,
