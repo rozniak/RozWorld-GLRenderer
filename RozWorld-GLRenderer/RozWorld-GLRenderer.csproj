@@ -8,8 +8,8 @@
     <ProjectGuid>{B001436F-18BB-4181-B141-E8F2345A9FA9}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Oddmatics.RozWorld.FrontEnd.OpenGL</RootNamespace>
-    <AssemblyName>Oddmatics.RozWorld.FrontEnd.OpenGL</AssemblyName>
+    <RootNamespace>Oddmatics.RozWorld.FrontEnd.OpenGl</RootNamespace>
+    <AssemblyName>Oddmatics.RozWorld.FrontEnd.OpenGl</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -56,6 +56,8 @@
   <ItemGroup>
     <Compile Include="RwGlFreeTypeService.cs" />
     <Compile Include="RwGlMethods.cs" />
+    <Compile Include="RwGlTypeFaceBufferData.cs" />
+    <Compile Include="RwGlTypeFaceData.cs" />
     <Compile Include="RwGlWindowManager.cs" />
     <Compile Include="RwGlWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
