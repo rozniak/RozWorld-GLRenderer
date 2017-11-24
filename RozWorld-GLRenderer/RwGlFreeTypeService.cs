@@ -45,6 +45,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
         /// <param name="sharedGlContext">The shared OpenGL context pointer.</param>
         public RwGlFreeTypeService(GlfwWindowPtr sharedGlContext)
         {
+            FreeTypeLibrary = new Library();
             RenderedFontReference = new Dictionary<Face, RwGlTypeFaceData>();
             SharedGlContext = sharedGlContext;
         }

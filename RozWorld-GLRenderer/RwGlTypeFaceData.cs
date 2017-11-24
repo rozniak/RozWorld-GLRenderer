@@ -22,12 +22,16 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
     /// </summary>
     internal class RwGlTypeFaceData
     {
-        public Face Face { get; private set; }
-
         public int GlTextureId { get; private set; }
 
+        public Vector2i TextureCacheDimensions { get { return new Vector2i(InternalTextureWidth, InternalTextureHeight); } }
+
+
+        private Face Face { get; set; }
 
         private Dictionary<char, Rectanglei> InternalCharacterMap { get; set; }
+
+        private int InternalTextureHeight { get; set; }
 
         private int InternalTextureWidth { get; set; }
 
@@ -35,6 +39,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
         public RwGlTypeFaceData(Face face)
         {
             InternalCharacterMap = new Dictionary<char, Rectanglei>();
+            InternalTextureHeight = 0;
             InternalTextureWidth = 0;
 
             Face = face;
@@ -42,7 +47,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 
             GL.BindTexture(TextureTarget.Texture2D, GlTextureId);
 
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb8, 0, face.Height,
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb8, 0, 0,
                 0, PixelFormat.Rgba, PixelType.Byte, IntPtr.Zero);
             GL.TexParameterI(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, new int[] { (int)TextureMagFilter.Linear });
             GL.TexParameterI(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, new int[] { (int)TextureMagFilter.Linear });
@@ -71,7 +76,10 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 
             // Expand Rectanglei objects into floats for VBOs
             //
-            
+
+
+            // Temp
+            return new RwGlTypeFaceBufferData();
         }
 
 
@@ -89,7 +97,34 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 
         private void LoadGlyphToTextureCache(char c)
         {
-            // TODO: Code this
+            if (InternalCharacterMap.ContainsKey(c))
+                throw new InvalidOperationException("The glyph is already present in the texture cache.");
+            
+            // Load and render the glyph into memory
+            //
+            uint glyphIndex = Face.GetCharIndex(c);
+
+            Face.LoadGlyph(glyphIndex, LoadFlags.Default, LoadTarget.Normal);
+            Face.Glyph.RenderGlyph(RenderMode.Normal);
+
+            FTBitmap glyphBitmap = Face.Glyph.Bitmap;
+
+            // Bind the glyph cache texture in GL
+            //
+            GL.BindTexture(TextureTarget.Texture2D, GlTextureId);
+
+            // Resize the glyph cache texture's height if needed
+            //
+            if (InternalTextureHeight < glyphBitmap.Rows)
+                InternalTextureHeight = glyphBitmap.Rows;
+
+            InternalTextureWidth += glyphBitmap.Width;
+
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, InternalTextureWidth, InternalTextureHeight, 0, PixelFormat.Rgba, PixelType.Byte, IntPtr.Zero);
+
+            // For now output to console
+            //
+            Console.WriteLine(glyphBitmap.PixelMode);
         }
 
         private uint NearestPowerOfTwo(int number)

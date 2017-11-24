@@ -133,7 +133,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
                 GL.UseProgram(ProgramId);
                 GL.Uniform1(UniformTimeId, UniformTime);
 
-                RwGlTypeFaceBufferData vbos = FreeTypeService.GetStringVboData("This is my text", TestFontFace);
+                
 
                 // Do drawing here
                 //GL.EnableVertexAttribArray(0);
@@ -193,7 +193,18 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
             //
             TestFontFace = new Face(FreeTypeService.FreeTypeLibrary, Environment.CurrentDirectory + @"\gl\ShareTechMono-Regular.ttf");
             TestFontFace.SetCharSize(0, 12, 0, 96);
-            
+
+            // // // // //
+            // TEST DATA - TESTING FONT
+            // 
+
+            RwGlTypeFaceBufferData vbos = FreeTypeService.GetStringVboData("This is my text", TestFontFace);
+
+
+            //
+            // END TEST DATA
+            // // // // //
+
             // Set up remaining OpenGL stuff
             //
             GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
