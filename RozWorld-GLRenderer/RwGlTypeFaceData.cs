@@ -24,7 +24,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
     {
         public int GlTextureId { get; private set; }
 
-        public Vector2i TextureCacheDimensions { get { return new Vector2i(InternalTextureWidth, InternalTextureHeight); } }
+        public Vector2 TextureCacheDimensions { get { return new Vector2(InternalTextureWidth, InternalTextureHeight); } }
 
 
         private Face Face { get; set; }
@@ -47,8 +47,8 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 
             GL.BindTexture(TextureTarget.Texture2D, GlTextureId);
 
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb8, 0, 0,
-                0, PixelFormat.Rgba, PixelType.Byte, IntPtr.Zero);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, 0, 0,
+                0, PixelFormat.Rgb, PixelType.UnsignedByte, IntPtr.Zero);
             GL.TexParameterI(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, new int[] { (int)TextureMagFilter.Linear });
             GL.TexParameterI(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, new int[] { (int)TextureMagFilter.Linear });
         }
@@ -59,27 +59,34 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
             var characterRects = new List<Rectanglei>();
             var uvRects = new List<Rectanglei>();
 
-            foreach (char c in text)
+            int xOffset = 0;
+
+            for (int i = 0; i < text.Length; i++)
             {
+                char c = text[i];
+
                 // Obtain character UV
                 //
                 if (!InternalCharacterMap.ContainsKey(c))
                     LoadGlyphToTextureCache(c);
 
-                uvRects.Add(InternalCharacterMap[c]);
+                Rectanglei uvRect = InternalCharacterMap[c];
 
-                // Obtain character vectors
-                //
+                if (uvRect.Width > 0 && uvRect.Height > 0)
+                {
+                    characterRects.Add(new Rectanglei(xOffset, 0, uvRect.Width, uvRect.Height));
+                    uvRects.Add(uvRect);
+                }
 
-                // TODO: Code this
+                xOffset += 32; // Temporary until character metrics are implemented
             }
 
-            // Expand Rectanglei objects into floats for VBOs
+            // Expand Rectanglei objects into floats for VBOs and return them
             //
-
-
-            // Temp
-            return new RwGlTypeFaceBufferData();
+            return new RwGlTypeFaceBufferData(
+                ExpandRectangleiList(characterRects),
+                ExpandRectangleiList(uvRects)
+                );
         }
 
 
@@ -89,7 +96,18 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 
             foreach (Rectanglei rectangle in source)
             {
-                // TODO: Code this
+                expandedList.AddRange(
+                    new float[]
+                    {
+                        rectangle.X, rectangle.Y,
+                        rectangle.X + rectangle.Width, rectangle.Y,
+                        rectangle.X, rectangle.Y + rectangle.Height,
+
+                        rectangle.X + rectangle.Width, rectangle.Y,
+                        rectangle.X, rectangle.Y + rectangle.Height,
+                        rectangle.X + rectangle.Width, rectangle.Y + rectangle.Height
+                    }
+                    );
             }
 
             return expandedList.ToArray();
@@ -109,9 +127,21 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 
             FTBitmap glyphBitmap = Face.Glyph.Bitmap;
 
+            // If the bitmap is zero size, skip the texture cache and add a dummy UV map to the dictionary
+            //
+            if (glyphBitmap.Width == 0 || glyphBitmap.Rows == 0)
+            {
+                InternalCharacterMap.Add(c, new Rectanglei(0, 0, 0, 0));
+                return;
+            }
+
             // Bind the glyph cache texture in GL
             //
             GL.BindTexture(TextureTarget.Texture2D, GlTextureId);
+
+            // Store x-offset for the next glyph to be loaded into
+            //
+            int charXOffset = InternalTextureWidth;
 
             // Resize the glyph cache texture's height if needed
             //
@@ -120,11 +150,30 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 
             InternalTextureWidth += glyphBitmap.Width;
 
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, InternalTextureWidth, InternalTextureHeight, 0, PixelFormat.Rgba, PixelType.Byte, IntPtr.Zero);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, InternalTextureWidth, InternalTextureHeight,
+                0, PixelFormat.Rgb, PixelType.UnsignedByte, IntPtr.Zero);
 
-            // For now output to console
+            // Load the glyph bitmap into the texture
             //
-            Console.WriteLine(glyphBitmap.PixelMode);
+            byte[] gBuffer = new byte[glyphBitmap.Width * glyphBitmap.Rows * 3];
+
+            for (int y = 0; y < glyphBitmap.Rows; y++)
+            {
+                for (int x = 0; x < glyphBitmap.Width; x++)
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        gBuffer[(x + y * glyphBitmap.Width) * 3 + i] = glyphBitmap.BufferData[x + glyphBitmap.Width * y];
+                    }
+                }
+            }
+            
+            GL.TexSubImage2D(TextureTarget.Texture2D, 0, charXOffset, 0, glyphBitmap.Width, glyphBitmap.Rows,
+                PixelFormat.Rgb, PixelType.UnsignedByte, gBuffer);
+
+            // Confirm the texture coordinates in the dictionary
+            //
+            InternalCharacterMap.Add(c, new Rectanglei(charXOffset, 0, glyphBitmap.Width, glyphBitmap.Rows));
         }
 
         private uint NearestPowerOfTwo(int number)

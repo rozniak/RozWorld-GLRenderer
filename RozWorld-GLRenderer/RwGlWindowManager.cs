@@ -13,6 +13,7 @@ using Oddmatics.RozWorld.API.Client;
 using Oddmatics.RozWorld.API.Client.Window;
 using Pencil.Gaming;
 using Pencil.Gaming.Graphics;
+using Pencil.Gaming.MathUtils;
 using SharpFont;
 using System;
 using System.Collections.Generic;
@@ -69,11 +70,25 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 
         #region OpenGL Resource Pointers
 
+        // // // //
+        // TEST DATA
+        //
+
         private Face TestFontFace;
+        private RwGlTypeFaceBufferData TestVbos;
+
+        private int FontDrawVboId;
+        private int FontUvVboId;
+
+        private int UniformFontCacheDimensions;
+        private int UniformWindowResolution;
+
+        //
+        // END TEST DATA
+        // // // //
 
         private uint ProgramId;
-
-        // Testing purposes
+        
         private int TranslationMatrixId;
 
         private int UniformTimeId;
@@ -132,21 +147,23 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 
                 GL.UseProgram(ProgramId);
                 GL.Uniform1(UniformTimeId, UniformTime);
+                GL.Uniform2(UniformFontCacheDimensions, FreeTypeService.GetFontCache(TestFontFace).TextureCacheDimensions);
+                GL.Uniform2(UniformWindowResolution, new Vector2(Windows[0].Size.Width, Windows[0].Size.Height));
 
+                GL.BindTexture(TextureTarget.Texture2D, FreeTypeService.GetFontCache(TestFontFace).GlTextureId);
                 
-
                 // Do drawing here
-                //GL.EnableVertexAttribArray(0);
-                //GL.BindBuffer(BufferTarget.ArrayBuffer, TilemapBuffer);
-                //GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
+                GL.EnableVertexAttribArray(0);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, FontDrawVboId);
+                GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
 
-                //GL.EnableVertexAttribArray(1);
-                //GL.BindBuffer(BufferTarget.ArrayBuffer, VertexUVBuffer);
-                //GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 0, 0);
+                GL.EnableVertexAttribArray(1);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, FontUvVboId);
+                GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 0, 0);
                 
 
-                //GL.DrawArrays(BeginMode.Triangles, 0, TilemapVertexData.Length);
-                //GL.DisableVertexAttribArray(0);
+                GL.DrawArrays(BeginMode.Triangles, 0, TestVbos.DrawVboData.Length);
+                GL.DisableVertexAttribArray(0);
 
                 Glfw.SwapBuffers(window.GlfwPointer);
             }
@@ -192,27 +209,46 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
             // Load font face
             //
             TestFontFace = new Face(FreeTypeService.FreeTypeLibrary, Environment.CurrentDirectory + @"\gl\ShareTechMono-Regular.ttf");
-            TestFontFace.SetCharSize(0, 12, 0, 96);
+            TestFontFace.SetCharSize(0, 36, 0, 96);
 
             // // // // //
             // TEST DATA - TESTING FONT
             // 
 
-            RwGlTypeFaceBufferData vbos = FreeTypeService.GetStringVboData("This is my text", TestFontFace);
+            TestVbos = FreeTypeService.GetStringVboData("34", TestFontFace);
 
+            FontDrawVboId = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, FontDrawVboId);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * TestVbos.DrawVboData.Length), TestVbos.DrawVboData, BufferUsageHint.StaticDraw);
+
+            FontUvVboId = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, FontUvVboId);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * TestVbos.UvVboData.Length), TestVbos.UvVboData, BufferUsageHint.StaticDraw);
 
             //
             // END TEST DATA
             // // // // //
 
+
             // Set up remaining OpenGL stuff
             //
-            GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+            int vao = GL.GenVertexArray();
+            GL.BindVertexArray(vao);
+
+            GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             
             ProgramId = RwGlMethods.LoadShaders(
                 File.ReadAllText(Environment.CurrentDirectory + @"\gl\vertex.glsl"),
                 File.ReadAllText(Environment.CurrentDirectory + @"\gl\fragment.glsl")
                 );
+
+            //
+            // TEMP: Get FontCacheDimensions
+            //
+            UniformFontCacheDimensions = GL.GetUniformLocation(ProgramId, "FontCacheDimensions");
+
+            // Get WindowResolution
+            UniformWindowResolution = GL.GetUniformLocation(ProgramId, "WindowResolution");
 
             // Get fTime
             UniformTimeId = GL.GetUniformLocation(ProgramId, "fTime");
@@ -226,6 +262,8 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
                 0, 0, 0, 0,
                 0, 0, 0, 1
             });
+
+            GL.Viewport(0, 0, firstWindow.Size.Width, firstWindow.Size.Height);
 
             return true;
         }

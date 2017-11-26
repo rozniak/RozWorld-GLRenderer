@@ -51,6 +51,14 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
         }
 
 
+        public RwGlTypeFaceData GetFontCache(Face face)
+        {
+            if (!RenderedFontReference.ContainsKey(face))
+                throw new KeyNotFoundException("The given face has not been rendered yet.");
+
+            return RenderedFontReference[face];
+        }
+
         /// <summary>
         /// Calculates and retrieves VBO data for the given string as the specified font face.
         /// </summary>
@@ -77,7 +85,10 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
         /// </summary>
         public void Dispose()
         {
-            throw new NotImplementedException();
+            foreach (Face face in RenderedFontReference.Keys)
+            {
+                face.Dispose();
+            }
         }
     }
 }
