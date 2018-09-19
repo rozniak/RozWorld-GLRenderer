@@ -61,14 +61,12 @@
     <Compile Include="RwGlWindowManager.cs" />
     <Compile Include="RwGlWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <None Include="Shaders\Default-FragmentShader.glsl">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Shaders\Default-VertexShader.glsl">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="GlShaders\Default-FragmentShader.glsl" />
+    <None Include="GlShaders\Default-VertexShader.glsl" />
+    <None Include="GlShaders\FontCache-FragmentShader.glsl" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
