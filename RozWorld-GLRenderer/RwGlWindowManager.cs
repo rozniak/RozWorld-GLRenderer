@@ -208,14 +208,14 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
 
             // Load font face
             //
-            TestFontFace = new Face(FreeTypeService.FreeTypeLibrary, Environment.CurrentDirectory + @"\gl\ShareTechMono-Regular.ttf");
+            TestFontFace = new Face(FreeTypeService.FreeTypeLibrary, @"C:\Windows\Fonts\Arial.ttf");
             TestFontFace.SetCharSize(0, 36, 0, 96);
 
             // // // // //
             // TEST DATA - TESTING FONT
             // 
 
-            TestVbos = FreeTypeService.GetStringVboData("34", TestFontFace);
+            TestVbos = FreeTypeService.GetStringVboData("3", TestFontFace);
 
             FontDrawVboId = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, FontDrawVboId);
@@ -238,8 +238,8 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
             GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             
             ProgramId = RwGlMethods.LoadShaders(
-                File.ReadAllText(Environment.CurrentDirectory + @"\gl\vertex.glsl"),
-                File.ReadAllText(Environment.CurrentDirectory + @"\gl\fragment.glsl")
+                File.ReadAllText(Environment.CurrentDirectory + @"\renderers\OpenGL\GlShaders\Default-VertexShader.glsl"),
+                File.ReadAllText(Environment.CurrentDirectory + @"\renderers\OpenGL\GlShaders\Default-FragmentShader.glsl")
                 );
 
             //

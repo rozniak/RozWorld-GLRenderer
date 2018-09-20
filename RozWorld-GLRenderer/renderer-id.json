@@ -1,0 +1,8 @@
+﻿{
+    "Authors": [
+        "Rory Fewell"
+    ],
+    "NiceName": "RozWorld OpenGL 3.2 Window Manager",
+    "TargetDll": "Oddmatics.RozWorld.FrontEnd.OpenGl.dll",
+    "Version": "in-progress"
+}
