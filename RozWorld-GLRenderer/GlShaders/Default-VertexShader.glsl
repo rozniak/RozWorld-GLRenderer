@@ -15,5 +15,5 @@ void main()
     gl_Position.z = 1.0;
     gl_Position.w = 1.0;
     
-    UV = vec2(VertexUV.x / UvMapResolution.x, VertexUV.y / UvMapResolution.y);
+    UV = vec2(VertexUV.x / UvMapResolution.x, 1 - (VertexUV.y / UvMapResolution.y));
 }

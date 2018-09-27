@@ -245,10 +245,10 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
             //
             // TEMP: Get FontCacheDimensions
             //
-            UniformFontCacheDimensions = GL.GetUniformLocation(ProgramId, "FontCacheDimensions");
+            UniformFontCacheDimensions = GL.GetUniformLocation(ProgramId, "UvMapResolution");
 
             // Get WindowResolution
-            UniformWindowResolution = GL.GetUniformLocation(ProgramId, "WindowResolution");
+            UniformWindowResolution = GL.GetUniformLocation(ProgramId, "CanvasResolution");
 
             // Get fTime
             UniformTimeId = GL.GetUniformLocation(ProgramId, "fTime");
