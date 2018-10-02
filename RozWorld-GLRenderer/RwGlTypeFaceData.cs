@@ -20,37 +20,78 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
     /// <summary>
     /// Represents typeface metadata used by the RozWorld OpenGL FreeType service.
     /// </summary>
-    internal class RwGlTypeFaceData
+    internal class RwGlTypeFaceData : IDisposable
     {
-        public int GlTextureId { get; private set; }
+        /// <summary>
+        /// The maximum number of font texture banks that can be active at once.
+        /// </summary>
+        public const byte MAX_BANKS = 4;
 
-        public Vector2 TextureCacheDimensions { get { return new Vector2(InternalTextureWidth, InternalTextureHeight); } }
+
+        /// <summary>
+        /// Gets the value that indicates whether this RwGlTypeFaceData instance is in the process of disposing.
+        /// </summary>
+        public bool Disposing { get; private set; }
 
 
+        /// <summary>
+        /// The mapping of characters to the texture banks in which their rendered form is stored.
+        /// </summary>
+        private Dictionary<char, byte> CharacterToBankIds { get; set; }
+
+        /// <summary>
+        /// The value that indicates whether this RwGlTypeData instance has been disposed.
+        /// </summary>
+        private bool Disposed;
+
+        /// <summary>
+        /// The internal texture banks for storing rendered glyphs.
+        /// </summary>
+        private List<RwGlTypeFaceBank> TextureBanks { get; set; }
+
+        /// <summary>
+        /// The typeface that this object is based on.
+        /// </summary>
         private Face Face { get; set; }
 
-        private Dictionary<char, Rectanglei> InternalCharacterMap { get; set; }
 
-        private int InternalTextureHeight { get; set; }
-
-        private int InternalTextureWidth { get; set; }
-
-
+        /// <summary>
+        /// Initializes a new instance of the RwGlTypeFaceData 
+        /// </summary>
+        /// <param name="face">The SharpFont.Face to use for rendering glyphs.</param>
         public RwGlTypeFaceData(Face face)
         {
-            InternalCharacterMap = new Dictionary<char, Rectanglei>();
-            InternalTextureHeight = 0;
-            InternalTextureWidth = 0;
-
+            CharacterToBankIds = new Dictionary<char, byte>();
             Face = face;
-            GlTextureId = GL.GenTexture();
+            TextureBanks = new List<RwGlTypeFaceBank>();
+        }
 
-            GL.BindTexture(TextureTarget.Texture2D, GlTextureId);
 
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, 0, 0,
-                0, PixelFormat.Rgb, PixelType.UnsignedByte, IntPtr.Zero);
-            GL.TexParameterI(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, new int[] { (int)TextureMagFilter.Linear });
-            GL.TexParameterI(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, new int[] { (int)TextureMagFilter.Linear });
+        /// <summary>
+        /// Releases all resources used by this RwGlTypeFaceData instance.
+        /// </summary>
+        public void Dispose()
+        {
+            if (Disposing || Disposed)
+                throw new ObjectDisposedException(Face.FamilyName);
+
+            Disposing = true;
+
+            foreach (RwGlTypeFaceBank bank in TextureBanks)
+            {
+                bank.Dispose();
+            }
+
+            Disposing = false;
+            Disposed = true;
+        }
+
+        public RwGlTypeFaceBufferData GenerateVboForString(string text)
+        {
+            if (Disposing || Disposed)
+                throw new ObjectDisposedException(Face.FamilyName);
+
+            return null;
         }
 
 

@@ -56,6 +56,8 @@
   <ItemGroup>
     <Compile Include="RwGlFreeTypeService.cs" />
     <Compile Include="RwGlMethods.cs" />
+    <Compile Include="RwGlRendererInterface.cs" />
+    <Compile Include="RwGlTypeFaceBank.cs" />
     <Compile Include="RwGlTypeFaceBufferData.cs" />
     <Compile Include="RwGlTypeFaceData.cs" />
     <Compile Include="RwGlWindowManager.cs" />

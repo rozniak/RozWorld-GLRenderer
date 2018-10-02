@@ -38,9 +38,14 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
         public IRwClient ParentClient { get; set; }
 
         /// <summary>
-        /// The GLFW pointer to the parent window of this renderer.
+        /// Gets the GLFW pointer to the parent window of this renderer.
         /// </summary>
         public GlfwWindowPtr ParentGlfwPointer { get; private set; }
+
+        /// <summary>
+        /// Gets the controller interface for commanding this renderer.
+        /// </summary>
+        public IRendererInterface RendererInterface { get; private set; }
 
         /// <summary>
         /// Gets the amount of windows active in this renderer.
@@ -205,6 +210,10 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
             // Create font service instance
             //
             FreeTypeService = new RwGlFreeTypeService(ParentGlfwPointer);
+
+            // Create the renderer controller interface
+            //
+            RendererInterface = new RwGlRendererInterface();
 
             // Load font face
             //
