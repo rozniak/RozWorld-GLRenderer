@@ -46,7 +46,7 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
         /// <summary>
         /// The active instructions for the renderer.
         /// </summary>
-        private Dictionary<uint, AbstractRendererInstruction> RenderInstructions;
+        private Dictionary<uint, AbstractRendererInstruction>[] RenderInstructions;
 
 
         /// <summary>
@@ -57,7 +57,15 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
             FontResources = new Dictionary<uint, Face>();
             FreeTypeLibrary = new Library();
             LocalRandom = new Random();
-            RenderInstructions = new Dictionary<uint, AbstractRendererInstruction>();
+
+            // Set up the render instructions array for potentially 4 screens
+            //
+            RenderInstructions = new Dictionary<uint, AbstractRendererInstruction>[] {
+                new Dictionary<uint, AbstractRendererInstruction>(),
+                null,
+                null,
+                null
+            };
         }
 
 
@@ -66,11 +74,47 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
         /// <summary>
         /// Adds an instruction to the render instruction queue.
         /// </summary>
+        /// <param name="window">The window index.</param>
         /// <param name="instruction">The instruction.</param>
         /// <returns>The ID of the instruction as it exists in the queue.</returns>
-        public uint AddInstruction(AbstractRendererInstruction instruction)
+        public uint AddInstruction(byte window, AbstractRendererInstruction instruction)
         {
-            throw new System.NotImplementedException();
+            if (window >= RenderInstructions.Length)
+            {
+                throw new IndexOutOfRangeException(
+                    String.Format(
+                        "RwGlRendererInterface.AddInstruction: Window {0} does not exist.",
+                        window
+                        )
+                    );
+            }
+
+            if (RenderInstructions[window] == null)
+            {
+                throw new InvalidOperationException(
+                    String.Format(
+                        "RwGlRendererInterface.AddInstruction: Window {0} is not active.",
+                        window
+                        )
+                    );
+            }
+
+            // Add this instruction to the set
+            //
+            bool validId = false;
+            uint newId = 0;
+
+            while (!validId)
+            {
+                newId = (uint)LocalRandom.Next(1, Int32.MaxValue);
+
+                if (!RenderInstructions[window].ContainsKey(newId))
+                    validId = true;
+            }
+
+            RenderInstructions[window].Add(newId, instruction);
+
+            return newId;
         }
 
         /// <summary>
@@ -123,10 +167,42 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
         /// <summary>
         /// Removes an instruction from the render instruction queue.
         /// </summary>
+        /// <param name="window">The window index.</param>
         /// <param name="id">The ID of the instruction.</param>
-        public void RemoveInstruction(uint id)
+        public void RemoveInstruction(byte window, uint id)
         {
-            throw new System.NotImplementedException();
+            if (window >= RenderInstructions.Length)
+            {
+                throw new IndexOutOfRangeException(
+                    String.Format(
+                        "RwGlRendererInterface.RemoveInstruction: Window {0} does not exist.",
+                        window
+                        )
+                    );
+            }
+
+            if (RenderInstructions[window] == null)
+            {
+                throw new InvalidOperationException(
+                    String.Format(
+                        "RwGlRendererInterface.RemoveInstruction: Window {0} is not active.",
+                        window
+                        )
+                    );
+            }
+
+            if (!RenderInstructions[window].ContainsKey(id))
+            {
+                throw new KeyNotFoundException(
+                    String.Format(
+                        "RwGlRendererInterface.RemoveInstruction: No instruction with ID {0} could be found in window {1}.",
+                        id,
+                        window
+                        )
+                    );
+            }
+
+            RenderInstructions[window].Remove(id);
         }
 
         #endregion
@@ -156,8 +232,9 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
         /// <summary>
         /// Gets the render instructions.
         /// </summary>
+        /// <param name="window">The window index.</param>
         /// <returns>The render instructions as an IList&ltAbstractRendererInstruction&gt; collection.</returns>
-        public IList<AbstractRendererInstruction> GetInstructions()
+        public IList<AbstractRendererInstruction> GetInstructions(byte window)
         {
             return new List<AbstractRendererInstruction>(RenderInstructions.Values).AsReadOnly();
         }
