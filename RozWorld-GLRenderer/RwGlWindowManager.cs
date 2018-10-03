@@ -206,20 +206,11 @@ namespace Oddmatics.RozWorld.FrontEnd.OpenGl
             // Set pixel storage parameters
             //
             GL.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
-
-            // Create font service instance
-            //
-            FreeTypeService = new RwGlFreeTypeService(ParentGlfwPointer);
-
+            
             // Create the renderer controller interface
             //
             RendererInterface = new RwGlRendererInterface();
-
-            // Load font face
-            //
-            TestFontFace = new Face(FreeTypeService.FreeTypeLibrary, @"C:\Windows\Fonts\Arial.ttf");
-            TestFontFace.SetCharSize(0, 36, 0, 96);
-
+            
             // // // // //
             // TEST DATA - TESTING FONT
             // 
